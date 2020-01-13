@@ -2,10 +2,8 @@
 import random as rand
 import math as math
 
-
 class Environment:
     def __init__(self, agent_lst=None, res_lst=None, envsize=8):
-        """a"""
         if agent_lst is None:
             agent_lst = []
         if res_lst is None:
@@ -40,10 +38,8 @@ class Environment:
             res = Ressource("o" + str(i + 1), respos)
             self.agent_lst.append(res)
 
-
 class Agent:
     def __init__(self, name, pos):
-        """a"""
         self.name = name
         self.posx = pos[0]
         self.posy = pos[1]
@@ -55,25 +51,33 @@ class Agent:
     def __repr__(self):
         return self.name
 
-    def bid(self, res):
-        min_dist = abs(self.posx - res.posx) + abs(self.posy - res.posy)
+    def bid(self, listRessource):
+        min_dist = math.inf
+        indexBestRessource = None
 
-        for ares in self.allocatedResLst:
-            dist = abs(ares.posx - ares.posx) + abs(ares.posy - res.posy)
-
+        for index, ressource in enumerate(listRessource): # Ressource la plus proche du robot..
+          if ressource.allocated == False: # .. qui ne soit pas allouée
+            dist = abs(self.posx - ressource.posx) + abs(self.posy - ressource.posy)
             if dist < min_dist:
-                min_dist = dist
+              min_dist = dist
+              indexBestRessource = index
 
-        return min_dist
+        for index, ressource in enumerate(listRessource): # Ressource la plus proche d'une ressource possédée par le robot
+          for ownedRessource in self.allocatedResLst:
+            if ressource.allocated == False:
+              dist = abs(ownedRessource.posx - ressource.posx) + abs(ownedRessource.posy - ressource.posy)
+              if dist < min_dist:
+                min_dist = dist
+                indexBestRessource = index
+
+        return (indexBestRessource, min_dist)
 
     def allocate(self, res):
         self.allocatedResLst.append(res)
         res.allocate()
 
-
 class Ressource:
     def __init__(self, name, pos):
-        """a"""
         self.name = name
         self.posx = pos[0]
         self.posy = pos[1]
@@ -88,39 +92,29 @@ class Ressource:
     def allocate(self):
         self.allocated = True
 
-
 class SSI:
     def __init__(self, environment):
-        """a"""
         self.env = environment
         self.nballocated = 0
 
     def allocate(self):
         while self.nballocated < self.env.nbres:
-            res = self.env.res_lst[self.nballocated]
-
-            bidder = -1
             min_bid = math.inf
-
-            for i, a in enumerate(self.env.agent_lst):
-                bid = a.bid(res)
-
+            indexRessource = None
+            for index, agent in enumerate(self.env.agent_lst):
+                (indexBestRessource, bid) = agent.bid(self.env.res_lst)
                 if bid < min_bid:
                     min_bid = bid
-                    bidder = i
-
-            if bidder != -1:
-                self.env.agent_lst[bidder].allocate(res)
-                self.nballocated += 1
-
+                    bidder = index
+                    indexRessource = indexBestRessource
+            self.env.agent_lst[bidder].allocate(self.env.res_lst[indexRessource])
+            self.nballocated += 1
 
 if __name__ == "__main__":
     # Sample custom env
-    lst_agent = [Agent("r1", (2, 5)), Agent("r2", (4, 4))]
-
-    lst_res = [Ressource("o1", (5, 5)), Ressource("o2", (2, 2)), Ressource("o3", (4, 7)), Ressource("o4", (4, 2))]
-
-    env = Environment(lst_agent, lst_res, 8)
+    list_agent = [Agent("r1", (2, 5)), Agent("r2", (4, 4))]
+    list_res = [Ressource("o1", (5, 5)), Ressource("o2", (2, 2)), Ressource("o3", (4, 7)), Ressource("o4", (4, 2))]
+    env = Environment(list_agent, list_res, 8)
 
     ssi = SSI(env)
     ssi.allocate()
