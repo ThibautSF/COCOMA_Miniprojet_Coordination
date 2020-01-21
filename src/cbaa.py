@@ -1,16 +1,18 @@
 #!/usr/bin/env python3.6
 import random as rand
-import math as math
+import math
+import copy
 
 
 class Environment:
-    def __init__(self, agent_lst=None, res_lst=None, envsize=8):
+    def __init__(self, agent_lst=None, res_lst=None, envsize=8, comrange=8):
         if agent_lst is None:
             agent_lst = []
         if res_lst is None:
             res_lst = []
 
         self.envsize = envsize
+        self.comrange = comrange
         self.agent_lst = agent_lst
         self.nbagent = len(agent_lst)
         self.res_lst = res_lst
@@ -39,15 +41,21 @@ class Environment:
             res = Ressource("o" + str(i + 1), respos)
             self.agent_lst.append(res)
 
+    def in_com_range(self, a1, a2):
+        dist = abs(a1.posx - a2.posx) + abs(a1.posy - a2.posy)
+
+        return dist <= self.comrange
+
 
 class Agent:
     def __init__(self, name, pos):
         self.name = name
         self.posx = pos[0]
         self.posy = pos[1]
-        self.utilities = []
+        # self.utilities = []
+        # self.allocate_bids = []
 
-        self.allocatedResLst = []
+        self.allocatedResSet = set()
 
     def __str__(self):
         return self.name
@@ -55,33 +63,9 @@ class Agent:
     def __repr__(self):
         return self.name
 
-    def bid(self, listRessource):
-        min_dist = math.inf
-        indexBestRessource = None
-
-        for index, ressource in enumerate(listRessource):
-            # Ressource la plus proche du robot..
-            if not ressource.allocated:
-                # .. qui ne soit pas allouée
-                dist = abs(self.posx - ressource.posx) + abs(self.posy - ressource.posy)
-                if dist < min_dist:
-                    min_dist = dist
-                    indexBestRessource = index
-
-        for index, ressource in enumerate(listRessource):
-            # Ressource la plus proche d'une ressource possédée par le robot
-            for ownedRessource in self.allocatedResLst:
-                if not ressource.allocated:
-                    dist = abs(ownedRessource.posx - ressource.posx) + abs(ownedRessource.posy - ressource.posy)
-                    if dist < min_dist:
-                        min_dist = dist
-                        indexBestRessource = index
-
-        return indexBestRessource, min_dist
-
     def allocate(self, res):
-        self.allocatedResLst.append(res)
-        res.allocate()
+        self.allocatedResSet.add(res)
+        res.allocate(self)
 
 
 class Ressource:
@@ -89,7 +73,7 @@ class Ressource:
         self.name = name
         self.posx = pos[0]
         self.posy = pos[1]
-        self.allocated = False
+        self.allocated_agent = set()
 
     def __str__(self):
         return self.name
@@ -97,8 +81,12 @@ class Ressource:
     def __repr__(self):
         return self.name
 
-    def allocate(self):
-        self.allocated = True
+    def allocate(self, agent):
+        #if self.allocated_agent is not None:
+        #    # remove ressource from previous agent owner
+        #   self.allocated_agent.allocatedResSet.remove(self)
+
+        self.allocated_agent.add(agent)
 
 
 class CBAA:
@@ -110,28 +98,57 @@ class CBAA:
         self.compute_utilities()
 
     def compute_utilities(self):
+        mod = self.env.envsize * 2
+
         for agent in self.env.agent_lst:
+            agent.utilities = []
+            agent.allocate_bids = []
+
             for res in self.env.res_lst:
                 u = abs(agent.posx - res.posx) + abs(agent.posy - res.posy)
-                agent.utilities.append(u)
 
-    def select_task(self, ci, ):
+                agent.utilities.append(mod - u)
+                agent.allocate_bids.append(0)
+
+        pass
+
+    def agent_bid(self, agent):
+        best_u = -math.inf
+        index_best = 0
+        second_u = 0
+
+        for i, res in enumerate(self.env.res_lst):
+            u = agent.utilities[i]
+
+            if u > best_u and u > agent.allocate_bids[i]:
+                second_u = best_u
+                best_u = u
+                index_best = i
+
+        bid = best_u - second_u
+        agent.allocate_bids[index_best] = bid
+        agent.current_bid = index_best
+
+    def consensus(self):
+        consensus_dict = dict()
+
+        # Init the tables at this iteration for each agent
+        for agent in self.env.agent_lst:
+            consensus_dict[agent] = copy.deepcopy(agent.allocate_bids)
+
+        for agent in self.env.agent_lst:
+            for com_agent in self.env.agent_lst:
+                if self.env.in_com_range(agent, com_agent):
+                    for i, bid in enumerate(agent.allocate_bids):
+                        # TODO
+                        pass
+
         pass
 
     def allocate(self):
-        while self.nballocated < self.env.nbres:
-            res = self.env.res_lst[self.nballocated]
+        for agent in self.env.agent_lst:
+            if len(agent.allocatedResSet()) == 0:
+                # CBAA bid only if not assigned (nbagent = nbres)
+                self.agent_bid(agent)
 
-            bidder = -1
-            min_bid = math.inf
-
-            for i, a in enumerate(self.env.agent_lst):
-                bid = a.bid(res)
-
-                if bid < min_bid:
-                    min_bid = bid
-                    bidder = i
-
-            if bidder != -1:
-                self.env.agent_lst[bidder].allocate(res)
-                self.nballocated += 1
+        pass
