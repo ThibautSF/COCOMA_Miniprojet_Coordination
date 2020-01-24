@@ -22,7 +22,7 @@ class Environment:
 
         self.nbagent = nbagent
         for i in range(nbagent):
-            '''init agent @ rand pos'''
+            '''init agent @ rand pos but at comunication range'''
             agentpos = (random.randint(0, self.envsize - 1), random.randint(0, self.envsize - 1))
             while agentpos in pos_lst \
                     or (len(self.agent_lst) > 0
@@ -171,10 +171,6 @@ class CBAA:
         agent.allocate(self.env.res_lst[index_best])
 
         print(str(agent) + " bid " + str(bid) + " on " + str(self.env.res_lst[index_best]))
-
-    def agent_bid2(self, agent):
-
-        pass
 
     def consensus(self):
         consensus_dict = dict()
