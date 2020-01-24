@@ -194,6 +194,23 @@ class SSIregret:
         # print("The min bid on this object is ", regretArray[][] "from agent")
         print("")
 
+    def printMap(self):
+        print("Map: ")
+        for y in range(self.env.envsize):
+            line = ""
+            for x in range(self.env.envsize):
+                s = "_"
+                for one_agent in self.env.agent_lst:
+                    if one_agent.posx == x and one_agent.posy == y:
+                        s = one_agent.name
+
+                for one_res in self.env.res_lst:
+                    if one_res.posx == x and one_res.posy == y:
+                        s = one_res.name
+
+                line += s + "\t"
+            print(line)
+
 if __name__ == "__main__":
     # Sample custom env
     list_agent = [Agent("r1", (2, 5)), Agent("r2", (4, 4))]

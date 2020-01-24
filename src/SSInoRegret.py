@@ -106,20 +106,20 @@ class SSI:
             indexRessource = None
             for index, agent in enumerate(self.env.agent_lst):
                 (indexBestRessource, bid) = agent.bid(self.env.res_lst)
-                print("Agent n°", index, "bids", bid, "on ressource n°", indexBestRessource)
+                print("Agent n°", index + 1, "bids", bid, "on ressource n°", indexBestRessource + 1)
                 if bid < min_bid:
                     min_bid = bid
                     bidder = index
                     indexRessource = indexBestRessource
-            print("-----> Agent n°", bidder, "gets ressource n°", indexRessource)
+            print("-----> Agent n°", bidder + 1, "gets ressource n°", indexRessource + 1)
             self.env.agent_lst[bidder].allocate(self.env.res_lst[indexRessource])
             self.nballocated += 1
 
     def printMap(self):
         print("Map: ")
-        for x in range(self.env.envsize):
+        for y in range(self.env.envsize):
             line = ""
-            for y in range(self.env.envsize):
+            for x in range(self.env.envsize):
                 s = "_"
                 for one_agent in self.env.agent_lst:
                     if one_agent.posx == x and one_agent.posy == y:
