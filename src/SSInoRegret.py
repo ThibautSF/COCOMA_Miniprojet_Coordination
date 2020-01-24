@@ -113,6 +113,22 @@ class SSI:
             self.env.agent_lst[bidder].allocate(self.env.res_lst[indexRessource])
             self.nballocated += 1
 
+    def printMap(self):
+        print("Map: ")
+        for x in range(self.env.envsize):
+            line = ""
+            for y in range(self.env.envsize):
+                s = "_"
+                for one_agent in self.env.agent_lst:
+                    if one_agent.posx == x and one_agent.posy == y:
+                        s = one_agent.name
+
+                for one_res in self.env.res_lst:
+                    if one_res.posx == x and one_res.posy == y:
+                        s = one_res.name
+
+                line += s + "\t"
+            print(line)
 if __name__ == "__main__":
     # Sample custom env
     list_agent = [Agent("r0", (2, 5)), Agent("r1", (4, 4))]
@@ -124,7 +140,7 @@ if __name__ == "__main__":
 
     for agent in ssi.env.agent_lst:
         print(agent.name + " -> " + str(agent.allocatedResLst))
-
+    ssi.printMap()
     # # Sample rand env
     # envrand = Environment()
     # envrand.init_randomenv(2, 4)
