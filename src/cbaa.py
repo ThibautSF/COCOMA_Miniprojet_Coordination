@@ -185,8 +185,9 @@ class CBAA:
                 if (agent != com_agent or i_agent != i_com_agent) and self.env.in_com_range(agent, com_agent):
                     # print(str(agent) + " -> " + str(com_agent))
                     nb_agent_in_com += 1
+                    print([a1[0] == a2[0] and a1[1] is not None and a2[1] is not None and a1[1].name == a2[1].name for a1, a2 in zip(consensus_dict[agent], consensus_dict[com_agent])])
 
-                    if all([a1[0] == a2[0] for a1, a2 in zip(consensus_dict[agent], consensus_dict[com_agent])]):
+                    if all([a1[0] == a2[0] and a1[1] is not None and a2[1] is not None and a1[1].name == a2[1].name for a1, a2 in zip(consensus_dict[agent], consensus_dict[com_agent])]):
                         nb_agent_agreed += 1
 
                     for i, bid in enumerate(consensus_dict[com_agent]):
