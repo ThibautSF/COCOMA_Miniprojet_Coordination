@@ -24,10 +24,14 @@ class Environment:
         for i in range(nbagent):
             '''init agent @ rand pos'''
             agentpos = (random.randint(0, self.envsize - 1), random.randint(0, self.envsize - 1))
-            while agentpos in pos_lst:
+            while agentpos in pos_lst \
+                    or (len(self.agent_lst) > 0
+                        and all([abs(agentpos[0] - a.posx) + abs(agentpos[1] - a.posy) > self.comrange
+                                 for a in self.agent_lst])):
                 agentpos = (random.randint(0, self.envsize - 1), random.randint(0, self.envsize - 1))
 
             a = Agent("r" + str(i + 1), agentpos)
+            pos_lst.append(agentpos)
             self.agent_lst.append(a)
 
         self.nbres = nbres
@@ -38,6 +42,7 @@ class Environment:
                 respos = (random.randint(0, self.envsize - 1), random.randint(0, self.envsize - 1))
 
             res = Ressource("o" + str(i + 1), respos)
+            pos_lst.append(respos)
             self.res_lst.append(res)
 
     def in_com_range(self, a1, a2):
@@ -185,9 +190,9 @@ class CBAA:
                 if (agent != com_agent or i_agent != i_com_agent) and self.env.in_com_range(agent, com_agent):
                     # print(str(agent) + " -> " + str(com_agent))
                     nb_agent_in_com += 1
-                    print([a1[0] == a2[0] and a1[1] is not None and a2[1] is not None and a1[1].name == a2[1].name for a1, a2 in zip(consensus_dict[agent], consensus_dict[com_agent])])
 
-                    if all([a1[0] == a2[0] and a1[1] is not None and a2[1] is not None and a1[1].name == a2[1].name for a1, a2 in zip(consensus_dict[agent], consensus_dict[com_agent])]):
+                    if all([a1[0] == a2[0] and a1[1] is not None and a2[1] is not None and a1[1].name == a2[1].name
+                            for a1, a2 in zip(consensus_dict[agent], consensus_dict[com_agent])]):
                         nb_agent_agreed += 1
 
                     for i, bid in enumerate(consensus_dict[com_agent]):
@@ -246,12 +251,6 @@ class CBAA:
             for a in self.env.agent_lst:
                 print(str(a) + " -> " + str(a.allocate_bids) + " -> " + str(a.allocatedResSet))
 
-            '''
-            if self.nballocated == self.env.nbres:
-                print("END : All ressources allocated")
-                break
-            '''
-
             print("Auctioning #" + str(i))
             self.auctioning()
 
@@ -280,12 +279,19 @@ if __name__ == "__main__":
     """
 
     # Sample rand env
-    envrand = Environment()
+    envrand = Environment(envsize=8, comrange=4)
     envrand.init_randomenv(4, 4)
 
     cbaa = CBAA(envrand)
     cbaa.compute_utilities()
     # cbaa.env.init_test_env()
+
+    print("\nPos:")
+    for one_agent in cbaa.env.agent_lst:
+        print(str(one_agent) + " -> (" + str(one_agent.posx) + "," + str(one_agent.posy) + ")")
+
+    for one_agent in cbaa.env.res_lst:
+        print(str(one_agent) + " -> (" + str(one_agent.posx) + "," + str(one_agent.posy) + ")")
 
     print("Map:")
     for x in range(cbaa.env.envsize):

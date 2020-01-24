@@ -26,6 +26,7 @@ class Environment:
                 agentpos = (rand.randint(0, self.envsize - 1), rand.randint(0, self.envsize - 1))
 
             a = Agent("r" + str(i + 1), agentpos)
+            pos_lst.append(agentpos)
             self.agent_lst.append(a)
 
         self.nbres = nbres
@@ -36,7 +37,8 @@ class Environment:
                 respos = (rand.randint(0, self.envsize - 1), rand.randint(0, self.envsize - 1))
 
             res = Ressource("o" + str(i + 1), respos)
-            self.agent_lst.append(res)
+            pos_lst.append(agentpos)
+            self.res_lst.append(res)
 
 class Agent:
     def __init__(self, name, pos):
