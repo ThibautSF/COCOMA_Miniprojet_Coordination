@@ -99,20 +99,23 @@ class SSI:
 
     def allocate(self):
         while self.nballocated < self.env.nbres:
+            print("############# New allocation round #############")
             min_bid = math.inf
             indexRessource = None
             for index, agent in enumerate(self.env.agent_lst):
                 (indexBestRessource, bid) = agent.bid(self.env.res_lst)
+                print("Agent n°", index, "bids", bid, "on ressource n°", indexBestRessource)
                 if bid < min_bid:
                     min_bid = bid
                     bidder = index
                     indexRessource = indexBestRessource
+            print("-----> Agent n°", bidder, "gets ressource n°", indexRessource)
             self.env.agent_lst[bidder].allocate(self.env.res_lst[indexRessource])
             self.nballocated += 1
 
 if __name__ == "__main__":
     # Sample custom env
-    list_agent = [Agent("r1", (2, 5)), Agent("r2", (4, 4))]
+    list_agent = [Agent("r0", (2, 5)), Agent("r1", (4, 4))]
     list_res = [Ressource("o1", (5, 5)), Ressource("o2", (2, 2)), Ressource("o3", (4, 7)), Ressource("o4", (4, 2))]
     env = Environment(list_agent, list_res, 8)
 
@@ -122,6 +125,6 @@ if __name__ == "__main__":
     for agent in ssi.env.agent_lst:
         print(agent.name + " -> " + str(agent.allocatedResLst))
 
-    # Sample rand env
-    envrand = Environment()
-    envrand.init_randomenv(2, 4)
+    # # Sample rand env
+    # envrand = Environment()
+    # envrand.init_randomenv(2, 4)
